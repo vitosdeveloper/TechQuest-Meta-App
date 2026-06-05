@@ -32,13 +32,13 @@ const STEPS = [
     content: `
 # Deploy Cloud-Native da Meta-App
 
-Nossa plataforma roda lindamente no Docker Compose (\`docker:infra\`), mas o mercado **exige** alta disponibilidade, orquestração e infraestrutura como código (IaC).
+Nossa plataforma roda lindamente no Docker Compose (\`docker-compose up -d --build\`), mas o mercado **exige** alta disponibilidade, orquestração e infraestrutura como código (IaC).
 
-Você está pronto para levar a Meta-App para um cluster **Kubernetes** real?
+Você está pronto para levar a Meta-App para um cluster **Kubernetes** real na nuvem?
 
 Nesta missão guiada, você aprenderá a:
-1. Provisionar a infraestrutura usando **Terraform**.
-2. Empacotar a aplicação via **Helm Charts**.
+1. Provisionar a infraestrutura real na AWS usando nossos scripts **Terraform**.
+2. Empacotar e aplicar seus serviços via **Kubernetes Manifests**.
 3. Fazer o deploy contínuo via **ArgoCD / GitOps**.
     `
   },
@@ -49,29 +49,21 @@ Nesta missão guiada, você aprenderá a:
     content: `
 # Infraestrutura como Código (Terraform)
 
-Em vez de clicar em botões na AWS/GCP, nós declaramos nossos recursos.
-No mundo real, você usaria o módulo do **EKS** (AWS) ou **GKE** (Google Cloud). Para estudos, vamos abstrair o cluster.
+Em vez de clicar em botões no console da AWS, nós declaramos nossos recursos.
+No nosso repositório, você encontra scripts reais para a AWS na pasta \`infra/terraform\`.
 
-Crie um arquivo \`main.tf\`:
+Nós já deixamos pronto para você:
+- \`vpc.tf\`: Criação de Redes Privadas e Públicas.
+- \`eks.tf\`: Criação do Cluster Kubernetes Elastic da AWS.
+- \`rds.tf\`: Criação do Banco PostgreSQL Gerenciado.
 
-\`\`\`hcl
-provider "kubernetes" {
-  config_path    = "~/.kube/config"
-  config_context = "minikube"
-}
-
-resource "kubernetes_namespace" "techquest" {
-  metadata {
-    name = "techquest-prod"
-  }
-}
-\`\`\`
-
-Para iniciar:
+Para provisionar a infraestrutura de verdade (Atenção: gera custos na AWS):
 \`\`\`bash
+cd infra/terraform
 terraform init
-terraform apply -auto-approve
+terraform apply
 \`\`\`
+Após alguns minutos, seu Cluster EKS e Banco de Dados estarão no ar!
     `
   },
   {
@@ -79,41 +71,23 @@ terraform apply -auto-approve
     title: 'Kubernetes: O Orquestrador',
     icon: <Layers size={24} />,
     content: `
-# Helm & Kubernetes Manifests
+# Kubernetes Manifests
 
 Nosso Gateway e os microserviços precisam de \`Deployments\` e \`Services\`.
+Na pasta \`k8s/\`, você encontra os manifestos Kubernetes já estruturados.
 
 No Kubernetes, em vez do Docker Compose, a arquitetura ganha robustez:
-- **ReplicaSets**: Mantém sempre X cópias do \`user-service\` rodando.
-- **Services (ClusterIP)**: O \`api-gateway\` vai achar os serviços via DNS interno.
+- **Deployments**: Mantém sempre X cópias dos serviços rodando (ex: \`user-service\`).
+- **Services (ClusterIP)**: O \`api-gateway\` vai achar os serviços via DNS interno nativo do Kubernetes.
 - **Ingress Controller**: Expõe o \`api-gateway\` e o \`frontend\` para o mundo externo.
 
-\`\`\`yaml
-# Exemplo simplificado de Deployment do user-service
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: user-service
-  namespace: techquest-prod
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: user-service
-  template:
-    metadata:
-      labels:
-        app: user-service
-    spec:
-      containers:
-      - name: app
-        image: techquest/user-service:latest
-        env:
-        - name: DATABASE_URL
-          valueFrom:
-            secretKeyRef:
-              name: db-secrets
-              key: url
+Para testar o deploy manualmente no seu novo cluster EKS:
+\`\`\`bash
+# 1. Autentique-se no seu cluster EKS
+aws eks update-kubeconfig --region us-east-1 --name techquest-cluster
+
+# 2. Aplique as configurações do User Service
+kubectl apply -f k8s/user-service/
 \`\`\`
     `
   },
@@ -124,9 +98,9 @@ spec:
     content: `
 # ArgoCD (GitOps)
 
-Seu código agora vive no Git. Você não executa mais \`kubectl apply\`.
+Seu código agora vive no Git (\`github.com/vitosdeveloper\`). Na nuvem moderna, você não executa mais \`kubectl apply\` manualmente na sua máquina.
 
-O **ArgoCD** observa o repositório Github. Quando você altera o \`values.yaml\` do Helm alterando a versão da imagem de \`v1.0.0\` para \`v2.0.0\`, o ArgoCD detecta a mudança e magicamente atualiza os pods no Kubernetes.
+O **ArgoCD** é instalado dentro do cluster e fica observando o repositório Github. Quando você altera a versão da imagem do \`api-gateway\` de \`v1.0.0\` para \`v2.0.0\` num commit, o ArgoCD detecta a mudança e magicamente atualiza os pods no Kubernetes.
 
 \`\`\`yaml
 apiVersion: argoproj.io/v1alpha1
@@ -137,8 +111,8 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: 'https://github.com/techquest/infra-repo.git'
-    path: charts/techquest
+    repoURL: 'https://github.com/vitosdeveloper/SEU_REPOSITORIO.git'
+    path: k8s
     targetRevision: HEAD
   destination:
     server: 'https://kubernetes.default.svc'
@@ -149,7 +123,7 @@ spec:
       selfHeal: true
 \`\`\`
 
-Com isso, a implantação na nuvem não é apenas um "upload de código", mas sim um protocolo auto-recuperável. Você domina a verdadeira engenharia de software Cloud-Native.
+Com isso, a implantação na nuvem não é apenas um "upload de código", mas sim um protocolo auto-recuperável. Você domina a verdadeira engenharia de software Cloud-Native!
     `
   }
 ];
