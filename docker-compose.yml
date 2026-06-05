@@ -196,7 +196,8 @@ services:
     ports:
       - "3004:3004"
     env_file:
-      - ./ai-service/.env
+      - path: ./ai-service/.env
+        required: false
     environment:
       - PORT=3004
       - OLLAMA_BASE_URL=http://ollama:11434
