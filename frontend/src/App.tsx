@@ -177,6 +177,29 @@ function App() {
       >
         <Cloud size={18} /> Cloud Deploy
       </button>
+
+      {/* Footer Credits */}
+      <div style={{
+        position: 'fixed', bottom: '15px', left: '50%', transform: 'translateX(-50%)',
+        fontSize: '0.85rem', color: 'var(--text-muted)', zIndex: 8000,
+        display: 'flex', gap: '15px', background: 'rgba(0,0,0,0.6)', 
+        padding: '8px 20px', borderRadius: '30px', backdropFilter: 'blur(5px)',
+        border: '1px solid var(--border-color)', alignItems: 'center'
+      }}>
+        <span>Developed by <strong style={{ color: '#fff' }}>vitosdeveloper</strong></span>
+        <span style={{ opacity: 0.3 }}>|</span>
+        <a href="https://github.com/vitosdeveloper" target="_blank" rel="noreferrer" style={{ color: 'var(--primary)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}>
+          GitHub
+        </a>
+        <span style={{ opacity: 0.3 }}>|</span>
+        <a href="https://linkedin.com/in/vitosdeveloper" target="_blank" rel="noreferrer" style={{ color: 'var(--primary)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}>
+          LinkedIn
+        </a>
+        <span style={{ opacity: 0.3 }}>|</span>
+        <a href="https://vitosdeveloper.com" target="_blank" rel="noreferrer" style={{ color: 'var(--accent)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 'bold' }}>
+          Website
+        </a>
+      </div>
     </div>
   );
 }
