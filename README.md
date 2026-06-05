@@ -2,25 +2,42 @@
 
 Bem-vindo ao **TechQuest Meta-App**! Você não está apenas em um repositório de código, você está em um **Curso Vivo e Gamificado de Engenharia de Software**.
 
-Nesta versão V2, abandonamos o "código espaguete" e transformamos a plataforma em uma infraestrutura pronta para produção, implementando os maiores padrões técnicos usados por empresas globais como Uber, Netflix e Spotify.
+## 🎯 Proposta do Projeto
 
-## 🏗️ A Arquitetura (Ecossistema Microservices)
+O TechQuest Meta-App nasceu com o objetivo de revolucionar a forma como devs aprendem arquiteturas avançadas. Ao invés de ler tutoriais chatos ou assistir a longos vídeos teóricos, você navega em uma plataforma gamificada (com sistema de XP, Níveis e Kanban) onde as lições são ensinadas **pela própria arquitetura que faz o app rodar**.
 
-Nós adotamos uma arquitetura de **Microserviços Orientada a Eventos (EDA)** com padrão **12-Factor App**. O ecossistema é composto por 5 componentes integrados:
+É um conceito inovador de *Meta-Ensino*: a plataforma ensina sobre Sistemas Distribuídos sendo, ela mesma, um Ecossistema de Microserviços real! Nesta versão V2, fomos além do "código tutorial" e transformamos o repositório em uma infraestrutura pronta para produção, implementando os maiores padrões técnicos consolidados pela indústria e empresas globais como Uber, Netflix e Spotify.
 
-1. **API Gateway (NestJS + GraphQL BFF):** O único ponto de entrada do Frontend. Resolve CORS, protege rotas via interceptores JWT, e hospeda um servidor Apollo (GraphQL) que costura dados através do *Schema Stitching*.
-2. **User Service (Express + Clean Arch + JWT):** O núcleo isolado. Assina Tokens de Autenticação. Funciona como o lado "Command" do CQRS, emitindo eventos (`USER_CREATED`, `KANBAN_SYNC`) no Apache Kafka via *Outbox Pattern*.
-3. **Gamification Service (Fastify):** Um serviço de alta-performance assíncrono. Funciona como a "Read Projection" (Query side) escutando o Kafka. 
-4. **Course Service (Express + Redis Cache):** Motor de leitura de arquivos `.lesson.md`. Usa o Redis em um padrão de *Cache-Aside* para reduzir a latência e não onerar o disco rígido a cada request.
-5. **Observability Service (Express + SSE):** O nosso modo "Matrix". Ouve todo tráfego Kafka e logs do Gateway, empurrando os pacotes em tempo real pro Frontend via *Server-Sent Events*.
-6. **AI Service (RAG/LangChain):** Servidor HTTP de Inteligência Artificial rodando a arquitetura RAG (Retrieval-Augmented Generation) para responder a dúvidas.
-7. **Frontend (React/Vite):** UI construída com estética Synthwave, consumindo APIs em GraphQL, gerenciando JWT e exibindo o terminal SSE em tempo real.
+## 🎓 Tópicos Principais Abordados
+
+- **Microserviços & Sistemas Distribuídos:** Desacoplamento, Resiliência e API Gateways (Backend-for-Frontend).
+- **Event-Driven Architecture (EDA):** Comunicação Assíncrona, Apache Kafka e o robusto Outbox Pattern.
+- **Padrões de Projeto & Arquitetura:** Clean Architecture, CQRS (Command Query Responsibility Segregation) e Cache-Aside.
+- **Engenharia de IA (RAG):** Integração Nativa e Local com LLMs via LangChain e Ollama.
+- **DevOps & Cloud-Native:** Dockerização Total, Kubernetes e Terraform.
+- **Observabilidade:** Monitoramento (Prometheus/Grafana) e Streaming ao vivo via Server-Sent Events (SSE).
+- **Frontend Avançado:** React, Vite, Micro-frontends (MFE), Zustand e Drag-and-Drop (DnD).
 
 ---
 
-## 🤖🌟 Inteligência Artificial 100% Grátis e Offline (Novidade!)
+## 🏗️ A Arquitetura (Ecossistema Microservices)
 
-Não quer pagar pela API da OpenAI? Sem problemas! A plataforma vem com suporte **Nativo e Gratuito** para rodar IAs localmente no seu computador (com memória de conversa e formatação Markdown!).
+Nós adotamos uma arquitetura de **Microserviços Orientada a Eventos (EDA)** com padrão **12-Factor App**. O ecossistema é composto por componentes integrados:
+
+1. **API Gateway (NestJS + GraphQL BFF):** O único ponto de entrada do Frontend. Resolve CORS, protege rotas via interceptores JWT, e hospeda um servidor Apollo (GraphQL) que costura dados.
+2. **User Service (Express + Clean Arch + JWT):** O núcleo isolado. Assina Tokens de Autenticação. Funciona como o lado "Command" do CQRS, emitindo eventos (`USER_CREATED`, `KANBAN_SYNC`) no Apache Kafka via *Outbox Pattern*.
+3. **Gamification Service (Fastify):** Um serviço de alta-performance assíncrono. Funciona de forma totalmente passiva escutando o Kafka e calculando níveis. 
+4. **Query Service (Express + MongoDB):** A "Read Projection" do sistema (CQRS). Materializa views em NoSQL otimizadas para leitura rápida do GraphQL.
+5. **Course Service (Express + Redis Cache):** Motor de leitura de arquivos `.lesson.md`. Usa o Redis em um padrão de *Cache-Aside* para reduzir a latência e não onerar o disco rígido a cada request.
+6. **Observability Service (Express + SSE):** O nosso modo "Matrix". Ouve todo tráfego Kafka e empurra os pacotes em tempo real pro Frontend via *Server-Sent Events*.
+7. **AI Service (RAG/LangChain):** Servidor HTTP de Inteligência Artificial rodando a arquitetura RAG (Retrieval-Augmented Generation) para responder a dúvidas através do terminal na UI.
+8. **Frontend (React/Vite):** UI construída com estética Cyberpunk/Synthwave, consumindo APIs, gerenciando MFE e exibindo gráficos em tempo real.
+
+---
+
+## 🤖🌟 Inteligência Artificial 100% Grátis e Offline
+
+Não quer pagar pela API da OpenAI? A plataforma vem com suporte **Nativo e Gratuito** para rodar IAs localmente no seu computador (com memória de conversa e formatação Markdown!).
 
 1. Baixe e instale o [Ollama.com](https://ollama.com/) na sua máquina.
 2. No seu terminal, baixe os modelos:
@@ -40,29 +57,28 @@ Não quer pagar pela API da OpenAI? Sem problemas! A plataforma vem com suporte 
 
 O projeto foi desenhado no padrão **12-Factor App**, permitindo execução flexível tanto para Desenvolvimento rápido (Hot-Reload) quanto para Produção (Containers Isolados).
 
-### 🛠️ Modo Desenvolvimento (Hot Reload / TSX Watch)
+### 🛠️ Modo Desenvolvimento (Hot Reload)
 Use este modo quando quiser editar o código e ver as mudanças em tempo real. Os serviços de infraestrutura (Postgres, Kafka) rodam no Docker, enquanto as APIs rodam nativamente no seu Node.js via `tsx watch`.
 
 1. Suba a infraestrutura pesada (Bancos, Caches e Mensageria):
    ```bash
    docker-compose up -d postgres zookeeper kafka rabbitmq prometheus grafana redis
    ```
-2. Instale as dependências raiz e inicie o orquestrador (Concurrently):
+2. Na raiz, instale as dependências e inicie o orquestrador (Concurrently):
    ```bash
    npm install
    npm start
    ```
-   *Isso irá subir todos os 4 microserviços, o API Gateway e o Frontend (Vite) simultaneamente com auto-reload ativado. O frontend estará em http://localhost:5173*
+   *O frontend estará rodando em http://localhost:5173*
 
 ### 🐳 Modo Produção (Dockerização Total)
-Use este modo para validar a arquitetura Cloud-Native final, onde Frontend, Gateway e todos os microserviços rodam enclausurados em containers Linux Alpine (com Nginx).
+Use este modo para validar a arquitetura Cloud-Native final, onde Frontend, Gateway e todos os microserviços rodam enclausurados em containers Alpine.
 
 1. Construa todas as imagens e suba a rede completa:
    ```bash
-   docker-compose build
-   docker-compose up -d
+   docker-compose up -d --build
    ```
-2. O Frontend estará disponível nativamente na porta `80` ou `5173` via Nginx através da rede roteada do Docker.
+2. O Frontend estará disponível através da rede roteada do Docker em http://localhost:5173 (ou porta mapeada).
 
 ---
 
@@ -74,11 +90,22 @@ O sistema foi desenhado para você aprender lendo as aulas no Frontend e observa
 |-----------------|---------------------------------|
 | **Clean Architecture** | Vá para `user-service/src/domain/User.ts` (O núcleo) e `user-service/src/application/CreateUserUseCase.ts`. Veja como o banco de dados é invertido! |
 | **Apache Kafka & Mensageria** | Veja `user-service/src/index.ts` (Produtor via Outbox Relay) e `gamification-service/src/index.ts` (Consumidor Assíncrono com Idempotência). |
-| **Padrões de Microserviços (BFF)** | Veja a maravilha do API Gateway (Apollo GraphQL) em `api-gateway/src/graphql/User.resolver.ts`. |
+| **CQRS & Padrões (BFF)** | Veja a maravilha do API Gateway (Apollo GraphQL) em `api-gateway/src/graphql/User.resolver.ts` e a projeção de leitura em `query-service`. |
 | **Autenticação (JWT)** | Cheque a rota em `user-service/src/infrastructure/controllers/UserController.ts` e a blindagem em `api-gateway/src/main.ts`. |
 | **Caching com Redis** | O padrão Cache-Aside está no `course-service/src/application/use-cases/ListLessonsUseCase.ts`. |
 | **Observabilidade em Tempo Real** | Os interceptors do gateway enviam logs para o `observability-service/src/index.ts`, que lança pro `ObservabilityTerminal.tsx` no Frontend. |
 | **Engenharia de IA (RAG)** | Vá em `ai-service/src/rag.ts`. Lá está a lógica matemática vetorial do LangChain! |
-| **Event-Driven / Outbox Pattern** | Olhe `user-service/src/infrastructure/jobs/OutboxRelay.ts`. Um CronJob de resiliência. |
+| **Event-Driven / Outbox Pattern** | Olhe `user-service/src/infrastructure/jobs/OutboxRelay.ts`. Um CronJob de resiliência a quedas do Kafka. |
 
 Bem-vindo ao Estado da Arte da Engenharia!
+
+---
+
+## 👨‍💻 Créditos e Contato
+
+Desenvolvido com 💜 por **vitosdeveloper**.
+Acompanhe meu trabalho, conecte-se comigo e explore novos projetos de Arquitetura de Software:
+
+- 🌐 **Site / Portfólio:** [vitosdeveloper.com](https://vitosdeveloper.com)
+- 💼 **LinkedIn:** [linkedin.com/in/vitosdeveloper](https://linkedin.com/in/vitosdeveloper)
+- 🐙 **GitHub:** [github.com/vitosdeveloper](https://github.com/vitosdeveloper)
