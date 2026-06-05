@@ -1,0 +1,30 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/client"
+}
+
+model UserXp {
+  userId String @id
+  xp     Int    @default(0)
+  level  Int    @default(1)
+}
+
+model ProcessedEvent {
+  eventId   String   @id
+  type      String
+  processedAt DateTime @default(now())
+}
+
+model CompletedLesson {
+  id        String   @id @default(uuid())
+  userId    String
+  lessonId  String
+  createdAt DateTime @default(now())
+
+  @@unique([userId, lessonId])
+}

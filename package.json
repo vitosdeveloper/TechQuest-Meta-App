@@ -1,0 +1,37 @@
+{
+  "name": "techquest-root",
+  "version": "1.0.0",
+  "description": "TechQuest Learning App Microservices",
+  "workspaces": [
+    "user-service",
+    "gamification-service",
+    "course-service",
+    "ai-service",
+    "api-gateway",
+    "observability-service",
+    "frontend",
+    "query-service",
+    "mfe-terminal"
+  ],
+  "scripts": {
+    "docker:up": "docker-compose up -d",
+    "docker:infra": "docker-compose up -d postgres zookeeper kafka rabbitmq prometheus grafana redis mongodb",
+    "docker:down": "docker-compose down",
+    "db:push": "node -e \"setTimeout(()=>{}, 3000)\" && cd user-service && npx prisma db push --accept-data-loss && cd ../gamification-service && npx prisma db push --accept-data-loss",
+    "clean": "powershell -ExecutionPolicy Bypass -File clean.ps1",
+    "dev:frontend": "npm run dev --prefix frontend",
+    "dev:api-gateway": "npm run dev --prefix api-gateway",
+    "dev:user-service": "npm run dev --prefix user-service",
+    "dev:course-service": "npm run dev --prefix course-service",
+    "dev:gamification-service": "npm run dev --prefix gamification-service",
+    "dev:ai-service": "npm run dev --prefix ai-service",
+    "dev:observability-service": "npm run dev --prefix observability-service",
+    "dev:query-service": "npm run dev --prefix query-service",
+    "dev:mfe-terminal": "npm run dev --prefix mfe-terminal",
+    "dev": "concurrently --kill-others --kill-others-on-fail -n \"GATEWAY,USER,GAMIF,COURSE,AI,OBS,QUERY,MFE,FRONTEND\" -c \"magenta,blue,green,yellow,cyan,white,magenta,blue,red\" \"npm run dev:api-gateway\" \"npm run dev:user-service\" \"npm run dev:gamification-service\" \"npm run dev:course-service\" \"npm run dev:ai-service\" \"npm run dev:observability-service\" \"npm run dev:query-service\" \"npm run dev:mfe-terminal\" \"npm run dev:frontend\"",
+    "start": "npm run docker:infra && npm run db:push && npm run dev"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

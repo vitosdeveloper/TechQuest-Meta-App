@@ -1,0 +1,28 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/client"
+}
+
+model User {
+  id          String   @id @default(uuid())
+  email       String   @unique
+  name        String
+  password    String
+  kanbanState Json     @default("{}")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Outbox {
+  id          String   @id @default(uuid())
+  aggregateId String
+  eventType   String
+  payload     Json
+  published   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
