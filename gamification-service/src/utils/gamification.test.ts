@@ -5,12 +5,12 @@ describe('Gamification Logic', () => {
     expect(calculateLevel(0)).toBe(1);
   });
 
-  it('should level up to 2 at 1000 XP', () => {
-    expect(calculateLevel(1000)).toBe(2);
+  it('should level up to 4 at 900 XP', () => {
+    expect(calculateLevel(900)).toBe(4);
   });
 
-  it('should be level 3 at 2500 XP', () => {
-    expect(calculateLevel(2500)).toBe(3);
+  it('should be level 6 at 2500 XP', () => {
+    expect(calculateLevel(2500)).toBe(6);
   });
 
   it('should return correct title for level 1', () => {

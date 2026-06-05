@@ -31,6 +31,7 @@ describe('Gamification Service API', () => {
       userId: 'usuario-inexistente',
       xp: 0,
       level: 1,
+      title: 'Iniciante',
     });
   });
 
@@ -51,6 +52,7 @@ describe('Gamification Service API', () => {
       userId: 'user-123',
       xp: 150,
       level: 2,
+      title: 'Tech Explorer',
     });
   });
 });
