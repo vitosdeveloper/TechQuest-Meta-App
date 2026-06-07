@@ -37,19 +37,26 @@ Nós adotamos uma arquitetura de **Microserviços Orientada a Eventos (EDA)** co
 
 ## 🤖🌟 Inteligência Artificial 100% Grátis e Offline
 
-Não quer pagar pela API da OpenAI? A plataforma vem com suporte **Nativo e Gratuito** para rodar IAs localmente no seu computador (com memória de conversa e formatação Markdown!).
+A plataforma vem com suporte **Nativo e Gratuito** para rodar IAs localmente no seu computador (com memória de conversa e formatação Markdown!). Você não precisa pagar pela API da OpenAI.
 
-1. Baixe e instale o [Ollama.com](https://ollama.com/) na sua máquina.
-2. No seu terminal, baixe os modelos:
-   - Chat: `ollama run llama3.2` (Rápido/Leve) ou `mistral`.
-   - Embeddings (Leitura do Código): `ollama pull nomic-embed-text`
-3. Vá no arquivo `.env` da pasta `ai-service` e ative o motor local:
-   ```env
+Em nossa arquitetura, o motor de IA (Ollama) já está "dockerizado" e pronto para uso sob o profile \`ai\` no Docker Compose. 
+
+### Passos para inicializar:
+1. **Ative a IA no arquivo \`.env\`:** Vá na pasta \`ai-service\` e configure:
+   \`\`\`env
    USE_OLLAMA=true
    OLLAMA_MODEL=llama3.2
    OLLAMA_EMBEDDING_MODEL=nomic-embed-text
-   ```
-4. Reinicie o servidor! O Mestre do Código agora responderá usando a sua placa de vídeo/processador local.
+   \`\`\`
+2. **Aloque Memória RAM no Docker Desktop:** Modelos de IA são pesados. Vá em **Docker Desktop Settings -> Resources -> Advanced** e garanta que o Docker tenha pelo menos **8GB a 16GB de RAM** alocados. Caso contrário, o container do Ollama será morto por falta de memória (OOMKilled).
+3. **Suba o ecossistema com o profile AI:**
+   No seu terminal, rode o comando abaixo. Ele subirá a aplicação normal e engatilhará os containers do Ollama.
+   \`\`\`bash
+   docker-compose --profile ai up -d --build
+   \`\`\`
+   *(Obs: Na primeira vez, o container \`ollama-init\` vai baixar os modelos \`llama3.2\` e \`nomic-embed-text\` automaticamente. Isso pode demorar alguns minutos dependendo da sua internet).*
+
+E pronto! O Mestre do Código agora responderá usando a sua CPU/Placa de vídeo local, de forma 100% privada.
 
 ---
 
