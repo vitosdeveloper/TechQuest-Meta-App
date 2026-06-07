@@ -1,38 +1,49 @@
 import express from 'express';
 import cors from 'cors';
 import path from 'path';
-import { TechQuestAiMentor } from './rag'; // Nossa classe que já criamos no tutorial de LangChain
+import * as dotenv from 'dotenv';
+
+// Dependências da Clean Architecture
+import { MemoryVectorStoreImpl } from './infrastructure/ai/vector-store/MemoryVectorStoreImpl';
+import { LangChainAgentProvider } from './infrastructure/ai/LangChainAgentProvider';
+import { AskQuestionUseCase } from './application/use-cases/AskQuestionUseCase';
+import { IngestKnowledgeUseCase } from './application/use-cases/IngestKnowledgeUseCase';
+import { AiController } from './infrastructure/controllers/AiController';
+
+dotenv.config();
 
 const app = express();
-
+app.use(cors());
 app.use(express.json());
 
-// Simulação de in-memory RAG
-const mentor = new TechQuestAiMentor();
-let isRagInitialized = false;
+// ==========================================
+// Injeção de Dependências Manual (DI Setup)
+// ==========================================
+const vectorStore = new MemoryVectorStoreImpl();
+const aiProvider = new LangChainAgentProvider(vectorStore);
 
-  app.post(['/ask', '/api/ai/ask'], async (req, res) => {
-  try {
-    const { question, chatHistory } = req.body;
-    
-    // Inicializa os documentos no Vector Store na primeira chamada
-    if (!isRagInitialized) {
-      console.log('🔄 Inicializando base de conhecimento...');
-      await mentor.ingestLessons(path.resolve(__dirname, '../../'));
-      isRagInitialized = true;
-    }
+const ingestKnowledgeUseCase = new IngestKnowledgeUseCase(vectorStore);
+const askQuestionUseCase = new AskQuestionUseCase(aiProvider);
 
-    console.log(`🤖 Pergunta recebida: ${question}`);
-    const answer = await mentor.askQuestion(question, chatHistory || '');
-    
-    res.json({ answer });
-  } catch (error: any) {
-    console.error('Erro na IA:', error);
-    res.status(500).json({ error: 'Falha no servidor de IA', details: error.message });
-  }
-});
+const aiController = new AiController(askQuestionUseCase);
 
+// ==========================================
+// Rotas
+// ==========================================
+app.post(['/ask', '/api/ai/ask'], (req, res) => aiController.ask(req, res));
+
+// ==========================================
+// Inicialização do Servidor e Dados Iniciais
+// ==========================================
 const PORT = process.env.PORT || 3004;
-app.listen(PORT, () => {
-  console.log(`🧠 AI Service (RAG) escutando na porta ${PORT}`);
+app.listen(PORT, async () => {
+  console.log(`🧠 AI Service (Agente Autônomo) escutando na porta ${PORT}`);
+  
+  // Opcionalmente, já carregar a base de conhecimento no boot
+  try {
+    const workspaceRoot = path.resolve(__dirname, '../../');
+    await ingestKnowledgeUseCase.execute(workspaceRoot);
+  } catch (e: any) {
+    console.error('⚠️ Falha ao ingerir conhecimentos iniciais:', e.message);
+  }
 });

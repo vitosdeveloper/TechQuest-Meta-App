@@ -1,74 +1,58 @@
-# 🧠 Engenharia de Inteligência Artificial e RAG
+# 🧠 Engenharia de Inteligência Artificial, RAG e AI Agents
 
 ## 1. O Que É e o Problema que Resolve
 O ChatGPT tem um limite: Ele foi treinado com o conhecimento da humanidade até a data de hoje, mas ele **não sabe absolutamente nada** sobre os arquivos privados da sua empresa, e "alucinará" (inventará fatos) se questionado.
-Para o TechQuest possuir um "Mentor AI" que entenda 100% dos nossos cursos e guie o usuário lendo nossos códigos, nós cruzamos o Engenheiro de Software com o Cientista de Dados usando o Padrão **RAG (Retrieval-Augmented Generation)**.
+Para o TechQuest possuir um "Mentor AI" que entenda 100% dos nossos cursos e guie o usuário lendo nossos códigos, nós cruzamos o Engenheiro de Software com o Cientista de Dados usando o Padrão **RAG (Retrieval-Augmented Generation)**. Mais recentemente, evoluímos isso para um **AI Agent Autônomo**.
 
 ### Dicionário Sênior
 - **LLM (Large Language Model):** Os super-cérebros artificiais, baseados em redes neurais da arquitetura Transformer. (Ex: GPT-4, Llama 3, Claude). 
-- **Embeddings Vetoriais:** É a matemática pura. É o processo de pegar um texto em português (ex: "Arquitetura Limpa") e traduzi-lo em uma coordenada física no espaço dimensional (ex: `[0.0123, -0.441, 0.999]`). 
-- **Vector Database (Banco de Dados Vetorial):** Em vez de usar cláusulas `WHERE` (banco SQL), este banco caça informações usando "Proximidade Geométrica" (Cosine Similarity). Se o Vetor da pergunta do usuário bater perto do Vetor do PDF da empresa no espaço matemático, nós retornamos aquele PDF. Ex: ChromaDB, Pinecone.
+- **Embeddings Vetoriais:** É a matemática pura. É o processo de pegar um texto em português e traduzi-lo em uma coordenada física no espaço dimensional. 
+- **Vector Database (Banco de Dados Vetorial):** Em vez de usar cláusulas `WHERE`, este banco caça informações usando "Proximidade Geométrica" (Cosine Similarity).
+- **AI Agent (Agente de IA):** Um LLM equipado com "Ferramentas" (Tools). Em vez de apenas responder texto, o modelo pode tomar decisões, buscar no Google, acessar sites ou rodar scripts na máquina antes de montar a resposta final.
 
 ## 2. Vantagens e Desvantagens (Trade-offs)
 
-| Abordagem | Fine-Tuning (Treinar o Cérebro) 🎓 | RAG (Buscar nos Arquivos) 📚 |
-| :--- | :--- | :--- |
-| **Funcionamento**| Ensinar o modelo os padrões da empresa alterando as sinapses da IA. | O modelo é "burro", mas tem acesso em tempo real ao Google Drive / Banco da empresa. |
-| **Atualização** | Péssima. Alterou o dado? Tem que retreinar a IA. Custa fortunas. | Imediata. Se o Banco Vetorial atualizou, a resposta atualiza (Zero-shot). |
-| **Custo Computacional**| Milhões de dólares em Placas de Vídeo (GPUs NVIDIA). | Barato. Envolve apenas busca matemática + inferência padrão API. |
+| Abordagem | Fine-Tuning (Treinar o Cérebro) 🎓 | RAG Clássico (Buscar nos Arquivos) 📚 | AI Agent (Autonomia) 🤖 |
+| :--- | :--- | :--- | :--- |
+| **Funcionamento**| Ensinar padrões alterando as sinapses da IA. | O modelo é "burro", mas tem acesso a um BD Vetorial. | O modelo possui "Ferramentas" e decide sozinho qual usar. |
+| **Complexidade** | Altíssima (Data Science puro). | Média (Pipelines de Ingestão de Dados). | Alta (Orquestração de Chamadas, ReAct, Loops infinitos). |
+| **Custo/Latência**| Milhões de dólares para treinar. Rápido na resposta. | Barato. Envolve busca matemática + LLM (1 chamada). | Custo varia. Pode demorar mais pois o Agente faz múltiplas requisições (Reasoning). |
 
-## 3. Cenário Ideal de Uso
+## 3. Deep Dive Arquitetural: Clean Architecture em IA
 
-**✅ Quando usar RAG e Agentes:**
-- Assistentes de leitura de PDFs jurídicos, manuais de RH internos da empresa, ou como no TechQuest, um mentor que lê os `.lesson.md` do sistema para ajudar o aluno com base estritamente no material criado pelos professores.
+Uma grande armadilha ao usar bibliotecas geniais como o **LangChain** é o **Alto Acoplamento**. O LangChain tende a misturar regras de negócio (prompts, cadeias de decisão) com infraestrutura (conexão com Ollama, requisições HTTP). 
 
-**❌ Quando usar Fine-Tuning:**
-- Quando o objetivo não é conhecimento de dados exatos, mas ensinar a IA um tom de voz perfeito ou gerar código em uma linguagem proprietária inventada do zero.
+No TechQuest, nós refatoramos o `ai-service` aplicando os princípios de **Clean Architecture**:
 
-## 4. Deep Dive (Exemplo Prático: Cadeia LangChain (Chain))
+- **Domain:** Nossas `Interfaces` (`IAiProvider`, `IVectorStore`). O núcleo do sistema não sabe se estamos usando LangChain, OpenAI ou LLaMA.
+- **Application (Use Cases):** Casos de uso puros como `AskQuestionUseCase`. Eles recebem a string do usuário e orquestram a interface do IA, sem saber como a mágica acontece.
+- **Infrastructure (Adapters/Tools):** Onde a "sujeira" do LangChain vive (`LangChainAgentProvider`). É aqui que criamos o `AgentExecutor` e nossas ferramentas (`KnowledgeBaseTool`, `WebBrowserTool`).
+- **Controllers:** Rotas do Express limpíssimas (`AiController`).
 
-A maravilha da biblioteca LangChain no AI Service. Em meia dúzia de linhas, criamos a inteligência que caça a informação certa antes de conversar com a OpenAI/Ollama:
+Essa separação garante que, se amanhã o LangChain for substituído por outra biblioteca (como o LlamaIndex ou SDKs nativos), nós alteramos apenas a camada de Infraestrutura, sem tocar na regra de negócio.
 
-```typescript
-import { createRetrievalChain } from 'langchain/chains';
-import { createStuffDocumentsChain } from 'langchain/chains/combine_documents';
-import { PromptTemplate } from '@langchain/core/prompts';
+## 4. Function Calling (Tool Calling) na Prática
 
-// 1. Instrução estrita de Comportamento do Mentor
-const promptSistemico = PromptTemplate.fromTemplate(`
-  Você é o Mentor Cyber Sênior do TechQuest. Responda apenas baseado nas informações 
-  que extraí do nosso VectorDB abaixo. Se a informação não estiver lá, diga "Eu não sei".
-  
-  <documentos_empresa>
-  {context}
-  </documentos_empresa>
-  
-  Pergunta do Aluno: {input}
-`);
+Nós substituímos a antiga cadeia engessada (`createRetrievalChain`) por um **Agente Autônomo** (`createToolCallingAgent`). O fluxo agora é:
 
-// 2. Unindo o "Cérebro LLM" e a "Memória (Banco Vetorial Retriever)"
-const chainDocumentos = await createStuffDocumentsChain({ llm: ollamaModel, prompt: promptSistemico });
-const correnteRag = await createRetrievalChain({
-  retriever: vectorStore.asRetriever(),
-  combineDocsChain: chainDocumentos,
-});
+1. O Usuário pergunta: *"Leia o site https://vitosdeveloper.com e resuma"*.
+2. O LLM recebe a string e a lista de Ferramentas Disponíveis (ex: `WebBrowserTool`, `TechQuestKnowledgeTool`).
+3. O modelo (LLaMA 3.2 / GPT) raciocina: *"Para responder a isso, eu preciso usar a ferramenta WebBrowserTool passando a URL"*.
+4. O modelo retorna um JSON mandando o servidor executar a função.
+5. O `AgentExecutor` (nosso Backend NodeJS) pega o JSON, roda a função (fazendo o `fetch` e o parsing com `Cheerio`), e devolve o texto do site pro LLM.
+6. O LLM lê o texto do site e finalmente monta a resposta pro usuário.
 
-// 3. A Pergunta. Por debaixo dos panos ele procura a semelhança cosenoidal e cria a resposta.
-const repostaMestra = await correnteRag.invoke({ input: "O que é Inversão de Controle?" });
-```
+Tudo isso acontece em loop e sozinho! Se o usuário fizesse uma pergunta sobre a arquitetura do TechQuest, o LLM decidiria chamar a ferramenta `TechQuestKnowledgeTool` para ler nosso BD Vetorial.
 
-## 5. Como o TechQuest Implementou Isso
+## 5. Como o TechQuest Implementou Isso (Ollama Local)
 
-No início do projeto, nosso `ai-service` sofria de "Mock Mode" quando a chave da OpenAI não estava configurada, ou consumia créditos reais via API em nuvem (GPT-3.5). Isso criava uma barreira para quem estivesse estudando ou clonando o projeto.
-
-Nós revolucionamos isso adotando o **Ollama** (Motor Local de Inferência). A arquitetura atual se comporta da seguinte forma:
-- O nosso `docker-compose.yml` agora sobe uma imagem oficial do Ollama (`ollama/ollama`) de forma totalmente enclausurada.
-- Nós criamos um container transitório (`ollama-init`) que roda um script automático (`ollama pull`) e faz o download pesado do modelo principal (`llama3.2`) e do modelo matemático vetorial (`nomic-embed-text`) para um volume Docker persistente.
-- O `ai-service` consome as mesmas variáveis de ambiente do modo de desenvolvimento (`.env`), garantindo que o LangChain seja instanciado utilizando o motor de LLMs e de Embeddings local, conectando pela rede interna do docker via `http://ollama:11434`.
-- **Zero Custos, 100% Autonomia**: Os seus dados de chat e os PDFs/Markdown lidos pelo RAG nunca saem da sua máquina hospedeira!
+- O nosso `docker-compose.yml` sobe o **Ollama** de forma enclausurada.
+- Um script automático faz o download do modelo principal (`llama3.2` - Suporta Tool Calling!) e do modelo vetorial (`nomic-embed-text`).
+- O `ai-service` (agora blindado pela Clean Architecture) consome o LangChain apontando para a rede local via `http://ollama:11434`.
+- **Zero Custos, 100% Autonomia**: Seus dados de chat e os sites raspados nunca saem da sua máquina hospedeira!
 
 ## 6. Checklist do Sênior (Perguntas de Entrevista)
 
-1. *"A janela de contexto (Context Window) de um LLM é limitada. O que acontece se o nosso RAG retornar 5.000 páginas de PDFs como resultado e nós enviarmos tudo para o GPT-4 tentar responder?"*
-2. *"Em buscas tradicionais nós usamos a 'Busca Lexical' (Keyword). O RAG usa 'Busca Semântica'. Como a busca semântica consegue achar um resultado se o usuário escrever 'dinheiro', mas o texto do PDF só usa a palavra 'capital monetário'?" (Dica: Posição vetorial)*
-3. *"O que são Agentes (AI Agents) e como eles se diferenciam de uma cadeia LLM engessada?"*
+1. *"A janela de contexto (Context Window) de um LLM é limitada. O que acontece se o nosso RAG retornar 5.000 páginas de PDFs como resultado e nós enviarmos tudo para o modelo?"*
+2. *"Em buscas tradicionais nós usamos a 'Busca Lexical' (Keyword). O RAG usa 'Busca Semântica'. Como a busca semântica acha um resultado se o usuário escrever 'dinheiro', mas o texto só usa 'capital monetário'?"*
+3. *"Ao usar LangChain, por que é perigoso deixar o `AgentExecutor` com acesso irrestrito ao bash da máquina host em produção?"*
